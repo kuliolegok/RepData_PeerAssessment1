@@ -1,87 +1,127 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 
 - First we need unzip and read data.
-```{r read data}
+
+```r
 unzip("activity.zip")
 dat<-read.csv("activity.csv")
 ```
 ## What is mean total number of steps taken per day?
 
 - Calculate the total number of steps taken per day
-```{r total steps}
+
+```r
 stepsperday<-tapply(dat$steps,dat$date,sum,na.rm=TRUE)
 ```
 
 - Build a histogram of the total number of steps taken each day
-```{r histogram}
+
+```r
 hist(stepsperday,breaks=20)
 ```
 
+![](PA1_template_files/figure-html/histogram-1.png) 
+
 - Calculate mean steps per day
-``` {r mean}
+
+```r
 mean(stepsperday)
 ```
+
+```
+## [1] 9354.23
+```
 - and median
-``` {r median}
+
+```r
 median(stepsperday)
+```
+
+```
+## [1] 10395
 ```
 
 ## What is the average daily activity pattern?
 - Build a time-series plot of the 5-minute interval and the average number of steps taken, averaged across all days
-```{r average_steps}
+
+```r
 average_steps <- tapply(dat$steps, dat$interval, mean, na.rm = TRUE)
 plot(as.numeric(rownames(average_steps)), average_steps, type = "l", xlab = "Time inverval", ylab="Average steps")
 ```
 
+![](PA1_template_files/figure-html/average_steps-1.png) 
+
 - Find the 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps.
-``` {r max}
+
+```r
 which.max(average_steps)
+```
+
+```
+## 835 
+## 104
 ```
 
 The 835-th interval has the maximum activity on the average.
 ## Imputing missing values
 - Calculate the total number of missing values.
-``` {r miss values}
+
+```r
 sum(is.na(dat))
 ```
 
+```
+## [1] 2304
+```
+
 - Creadting a new dataset which equal to original.
-``` {r copy}
+
+```r
 dat_na<-dat
 ```
 
 
 - Replace NA values with the mean of total steps in new dataset.
 
-``` {r replace na}
+
+```r
 dat_na[is.na(dat_na$steps),]$steps <- as.integer(mean(dat$steps, na.rm = TRUE))
 ```
 
 - Calculate the total number of steps taken per day for new dataset
-```{r total steps na}
+
+```r
 stepsperday_na<-tapply(dat_na$steps,dat_na$date,sum,na.rm=TRUE)
 ```
 
 - Build a histogram of the total number of steps taken each day for new dataset
-```{r histogram na}
+
+```r
 hist(stepsperday_na,breaks=20)
 ```
 
+![](PA1_template_files/figure-html/histogram na-1.png) 
+
 - Calculate mean steps per day
-``` {r mean na}
+
+```r
 mean(stepsperday_na)
 ```
+
+```
+## [1] 10751.74
+```
 - and median for new data set
-``` {r median na}
+
+```r
 median(stepsperday_na)
+```
+
+```
+## [1] 10656
 ```
 
 This values differs from original. By imputing missing values our data get more clearer.
@@ -91,8 +131,9 @@ This values differs from original. By imputing missing values our data get more 
 
 - Creating factor variable which indicates weekdays and weekends
 
-``` {r factor}
-daytype <- weekdays(as.Date(dat_na$date)) == c("ñóáîòà", "íåä³ëÿ")
+
+```r
+daytype <- weekdays(as.Date(dat_na$date)) == c("ÑÑƒÐ±Ð¾Ñ‚Ð°", "Ð½ÐµÐ´Ñ–Ð»Ñ")
 dat_na$daytype <- daytype == FALSE
 daytype = as.factor(dat_na$daytype)
 levels(daytype) <- c("weekend", "weekday")
@@ -100,7 +141,8 @@ dat_na$daytype <- daytype
 ```
 - Calculate average number of steps taken, averaged across all weekday days or weekend days.
 
-```{r daytype average}
+
+```r
 x <- dat_na[dat_na$daytype == "weekend", ]
 y <- dat_na[dat_na$daytype == "weekday", ]
 stepsByWeekend <- tapply(x$steps, x$interval, mean, na.rm = TRUE)
@@ -111,13 +153,23 @@ level <- factor(level, levels = c("weekday", "weekend"), labels = c("weekday",
 ```
 
 - Build plot with lattice
-``` {r plot 3}
+
+```r
 z <- append(stepsByWeekday, stepsByWeekend)
 z <- as.data.frame(z)
 numberOfInterval <- 24 * 60/5
 z <- cbind(z, dat_na$interval[1:numberOfInterval], level)
 names(z) <- c("Value", "Interval", "Daytype")
 library(lattice)
+```
+
+```
+## Warning: package 'lattice' was built under R version 3.1.3
+```
+
+```r
 xyplot(Value ~ Interval | Daytype, data = z, layout = c(1, 2), type = "l", xlab = "Interval", 
     ylab = "Number of steps")
 ```
+
+![](PA1_template_files/figure-html/plot 3-1.png) 
